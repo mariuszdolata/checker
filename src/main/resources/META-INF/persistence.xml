@@ -4,9 +4,9 @@
 	version="2.0">
 	<persistence-unit name="proxy" transaction-type="RESOURCE_LOCAL">
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
-		<!-- <class>proxy_checker.db.Proxy</class> -->
-		<!-- <class>proxy_checker.db.Score</class> -->
-		<!-- <exclude-unlisted-classes>true</exclude-unlisted-classes> -->
+		<class>proxy_checker.db.Proxy</class>
+		<class>proxy_checker.db.Score</class>
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="hibernate.connection.driver_class" value="com.mysql.cj.jdbc.Driver" />
 			<!-- <property name="hibernate.connection.password" value="${database.password}" 

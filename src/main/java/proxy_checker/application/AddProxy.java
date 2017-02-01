@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +37,7 @@ public class AddProxy {
 	/**
 	 * Zbior proxy wczytany z pliku
 	 */
-	private Set<Proxies> newProxies = new HashSet<Proxies>();
+	private List<Proxies> newProxies = new ArrayList<Proxies>();
 	/**
 	 * Zbior proxy wczytany z bazy danych
 	 */
@@ -58,11 +59,11 @@ public class AddProxy {
 		this.filePath = filePath;
 	}
 
-	public Set<Proxies> getNewProxies() {
+	public List<Proxies> getNewProxies() {
 		return newProxies;
 	}
 
-	public void setNewProxies(Set<Proxies> newProxies) {
+	public void setNewProxies(List<Proxies> newProxies) {
 		this.newProxies = newProxies;
 	}
 
@@ -101,7 +102,7 @@ public class AddProxy {
 	 * @return
 	 * @throws IOException
 	 */
-	private Set<Proxies> loadProxiesFromTextFile(String filePath) throws IOException {
+	private List<Proxies> loadProxiesFromTextFile(String filePath) throws IOException {
 		Set<Proxies> proxiesTxt = new HashSet<Proxies>();
 		BufferedReader br = new BufferedReader(new FileReader(filePath));
 		try {
@@ -125,7 +126,7 @@ public class AddProxy {
 			br.close();
 		}
 
-		return proxiesTxt;
+		return new ArrayList<Proxies>(proxiesTxt);
 	}
 	
 

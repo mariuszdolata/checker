@@ -7,14 +7,36 @@ import java.util.Properties;
 
 import javax.persistence.EntityManagerFactory;
 
+import org.apache.log4j.Logger;
+
 import crawler.api.DatabaseAccess;
 import proxy_checker.db.Proxies;
 
-public class CheckTaskRepository extends DatabaseAccess implements Runnable {
+public class CheckTaskRepository implements Runnable {
 
+	public Logger logger = Logger.getLogger(CheckTaskRepository.class);
 	private List<Proxies> proxiesToCheck = Collections.synchronizedList(new ArrayList<Proxies>());
 	private List<String> status = Collections.synchronizedList(new ArrayList<String>());
 	private BrowserSettings browserSettings;
+	private EntityManagerFactory entityManagerFactory;
+	private int threadId;
+
+	
+	public int getThreadId() {
+		return threadId;
+	}
+
+	public void setThreadId(int threadId) {
+		this.threadId = threadId;
+	}
+
+	public EntityManagerFactory getEntityManagerFactory() {
+		return entityManagerFactory;
+	}
+
+	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+		this.entityManagerFactory = entityManagerFactory;
+	}
 
 	public BrowserSettings getBrowserSettings() {
 		return browserSettings;
@@ -40,28 +62,49 @@ public class CheckTaskRepository extends DatabaseAccess implements Runnable {
 		this.status = status;
 	}
 
-	public CheckTaskRepository(int threadId, Properties properties, EntityManagerFactory entityManagerFactory,
+	public CheckTaskRepository(int threadId, EntityManagerFactory entityManagerFactory,
 			BrowserSettings browserSettings, List<Proxies> proxiesToCheck, List<String> status) {
-		super(threadId, properties, entityManagerFactory);
 		this.setBrowserSettings(browserSettings);
 		this.setProxiesToCheck(proxiesToCheck);
 		this.setStatus(status);
+		this.setThreadId(threadId);
+		this.setEntityManagerFactory(entityManagerFactory);
 	}
 
 	public void run() {
-		do{
-			int proxyNumber = getProxy(status);
-			CheckTask task = new CheckTask(this.getThreadId(), this.getProperties(), this.getEntityManagerFactory(), proxiesToCheck.get(proxyNumber), this.getBrowserSettings());
-			setProxy(status, proxyNumber, "DONE");
-		}while(true);
-
+		do{//petla restartuj¹ca watek po bledzie
+			try{//glowny blok wykonywania w¹tku
+				Integer index = null;
+				do{
+					index = getProxy(status);
+					if(index!=null){
+						//uurchomienie pojedynczego testu
+						CheckTask task = new CheckTask(this.getThreadId(),  this.getEntityManagerFactory(), this.getBrowserSettings(), this.getProxiesToCheck().get(index));
+						//zapisanie statusu dla danego proxy
+						task.startChecking();
+						setProxy(status, index, task.getResult());
+					}
+				}while(index!= null);
+				
+				
+			}catch(Exception e){
+				logger.error("Thread - zosta³ rzucony wyj¹tek, nast¹pi³o ponowienie");
+				logger.error(e.getMessage());
+			}
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}while(!Thread.interrupted());
 	}
 
-	public synchronized int getProxy(List<String> status) {
+	public synchronized Integer getProxy(List<String> status) {
 		int j;
 		for (int i = 0; i < status.size(); i++) {
-			if (status.get(i) != "DONE" && status.get(i) != "PENDING")
-				status.set(i, "PENDING");
+			if (status.get(i) != "SPRAWDZONO" && status.get(i) != "SPRAWDZANIE")
+				status.set(i, "SPRAWDZANIE");
 			return i;
 		}
 		return (Integer) null;

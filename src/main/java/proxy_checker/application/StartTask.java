@@ -12,12 +12,21 @@ import javax.swing.JTextField;
 import crawler.api.DatabaseAccess;
 import proxy_checker.db.Proxies;
 
-public class StartTask extends DatabaseAccess{
+public class StartTask {
 
 
 	private BrowserSettings browserSettings;
 	private List<Proxies> proxiesToCheck = Collections.synchronizedList(new ArrayList<Proxies>());
 	private List<String> status = Collections.synchronizedList(new ArrayList<String>()); 
+	private EntityManagerFactory entityManagerFactory;
+	
+	public EntityManagerFactory getEntityManagerFactory() {
+		return entityManagerFactory;
+	}
+
+	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+		this.entityManagerFactory = entityManagerFactory;
+	}
 
 	public BrowserSettings getBrowserSettings() {
 		return browserSettings;
@@ -43,24 +52,24 @@ public class StartTask extends DatabaseAccess{
 		this.status = status;
 	}
 
-	public StartTask(int threadId, Properties properties, EntityManagerFactory entityManagerFactory,BrowserSettings browserSettings, List<Proxies> proxiesToCheck, List<String> status) {
-		super(threadId, properties, entityManagerFactory);
+	public StartTask(EntityManagerFactory entityManagerFactory,BrowserSettings browserSettings, List<Proxies> proxiesToCheck, List<String> status) {
 		this.setBrowserSettings(browserSettings);
 		this.setProxiesToCheck(proxiesToCheck);
 		this.setStatus(status);
+		this.setEntityManagerFactory(entityManagerFactory);
 	}
 
 	public void start() {
 		CheckTaskRepository[] tasks = new CheckTaskRepository[this.getBrowserSettings().getNumberOfThreads()];
 		Thread[] threads = new Thread[this.getBrowserSettings().getNumberOfThreads()];
 		for (int i = 0; i < this.getBrowserSettings().getNumberOfThreads(); i++) {
-			
+			tasks[i] = new CheckTaskRepository(i,  this.getEntityManagerFactory(), this.getBrowserSettings(), this.getProxiesToCheck(), this.getStatus());
 		}
 		for (int i = 0; i < this.getBrowserSettings().getNumberOfThreads(); i++) {
-
+			threads[i] = new Thread(tasks[i]);
 		}	
 		for (int i = 0; i < this.getBrowserSettings().getNumberOfThreads(); i++) {
-
+			threads[i].start();
 		}
 	}
 

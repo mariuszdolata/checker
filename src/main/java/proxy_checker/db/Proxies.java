@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -62,7 +63,7 @@ public class Proxies {
 	public void setRank(double rank) {
 		this.rank = rank;
 	}
-	@OneToMany(cascade=CascadeType.ALL, mappedBy="proxy")
+	@OneToMany(cascade=CascadeType.ALL, mappedBy="proxies")
 	public Set<Score> getScores() {
 		return scores;
 	}
