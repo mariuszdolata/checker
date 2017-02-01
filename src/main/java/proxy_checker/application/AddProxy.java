@@ -3,6 +3,8 @@ package proxy_checker.application;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -143,7 +145,8 @@ public class AddProxy {
 		}
 		// dodanie nowych wczesniej nieistniejacych adresow
 		try {
-			this.getExistingProxies().addAll(this.getNewProxies());
+//			this.getExistingProxies().addAll(this.getNewProxies());
+			this.getNewProxies().removeAll(this.getExistingProxies());
 		} catch (Exception e) {
 			logger.error("Nie mozna dodac nowych adresow proxy do istniejacego zbioru");
 			logger.error(e.getMessage());
@@ -161,7 +164,7 @@ public class AddProxy {
 	private Set<Proxies> loadProxiesFromDatabase(EntityManagerFactory entityManagerFactory) {
 		EntityManager em = entityManagerFactory.createEntityManager();
 		em.getTransaction().begin();
-		TypedQuery<Proxies> query = em.createNamedQuery("SELECT p FROM Proxies p", Proxies.class);
+		TypedQuery<Proxies> query = em.createQuery("SELECT p FROM Proxies p", Proxies.class);
 		List<Proxies> proxyList = query.getResultList();
 		em.getTransaction().commit();
 		em.close();
@@ -169,20 +172,35 @@ public class AddProxy {
 		Set<Proxies> proxies = new HashSet<Proxies>(proxyList);
 		return proxies;
 	}
+
 	/**
 	 * Uaktualnienie istniej¹cego zbioru o nowe numery
+	 * 
 	 * @param entityManagerFactory
 	 */
-	private void insertProxies(EntityManagerFactory entityManagerFactory){
-		if(!this.getExistingProxies().isEmpty()){
+	private void insertProxies(EntityManagerFactory entityManagerFactory) {
+		if (!this.getNewProxies().isEmpty()) {
 			EntityManager em = entityManagerFactory.createEntityManager();
-			em.getTransaction().begin();
-			for(Proxies proxies:this.getExistingProxies()){
-				em.persist(proxies);
+			for (Proxies proxies : this.getNewProxies()) {
+				try {
+					if (!em.getTransaction().isActive())
+						em.getTransaction().begin();
+
+					em.persist(proxies);
+					if (em.getTransaction().isActive())
+						em.getTransaction().commit();
+					logger.info("wstawiony adres " + proxies.toString());
+				} catch (Exception e) {
+//					em.getTransaction().commit();
+					logger.warn("nie mozna wstawic obiektu do bazy " + proxies.toString());
+					StringWriter stack = new StringWriter();
+					e.printStackTrace(new PrintWriter(stack));
+
+					logger.warn(stack.toString());
+				}
 			}
-			em.getTransaction().commit();
 			em.close();
-		}else{
+		} else {
 			logger.warn("Nie mozna dodac proxy - lista jest pusta");
 			this.printInfo();
 		}
@@ -209,9 +227,10 @@ public class AddProxy {
 			logger.warn("Brak adresow proxy w existingProxy");
 		}
 	}
-	public void printInfo(){
-		logger.info("newProxies zawiera "+this.getNewProxies().size()+" elementow");
-		logger.info("existingProxies zawiera "+this.getExistingProxies().size()+" elementow");
+
+	public void printInfo() {
+		logger.info("newProxies zawiera " + this.getNewProxies().size() + " elementow");
+		logger.info("existingProxies zawiera " + this.getExistingProxies().size() + " elementow");
 	}
 
 }

@@ -100,8 +100,7 @@ public class Proxies {
 	}
 	@Override
 	public String toString() {
-		return "Proxies [id=" + id + ", dataDodania=" + dataDodania + ", adres=" + adres + ", port=" + port + ", rank="
-				+ rank + ", scores=" + scores + "]";
+		return "Proxies [id=" + id + ", dataDodania=" + dataDodania + ", adres=" + adres + ", port=" + port + "]";
 	}
 	
 	
