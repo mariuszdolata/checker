@@ -87,7 +87,7 @@ public class AddProxy {
 		this.filePath = filePath;
 		this.entityManagerFactory = entityManagerFactory;
 		joinProxySets(this.getFilePath());
-		insertProxies(this.getEntityManagerFactory());
+//		insertProxies(this.getEntityManagerFactory());
 	}
 
 	/**
@@ -124,6 +124,7 @@ public class AddProxy {
 
 		return proxiesTxt;
 	}
+	
 
 	/**
 	 * Metoda wczytuje nowe proxy z pliku tekstowego i istniejace z bazy
@@ -142,6 +143,7 @@ public class AddProxy {
 		} catch (Exception e) {
 			logger.error("Blad wczytania listy istniejacych proxy z bazy danych");
 			logger.error(e.getMessage());
+			e.printStackTrace();
 		}
 		// dodanie nowych wczesniej nieistniejacych adresow
 		try {
@@ -165,12 +167,39 @@ public class AddProxy {
 		EntityManager em = entityManagerFactory.createEntityManager();
 		em.getTransaction().begin();
 		TypedQuery<Proxies> query = em.createQuery("SELECT p FROM Proxies p", Proxies.class);
-		List<Proxies> proxyList = query.getResultList();
+		Set<Proxies> set = new HashSet<Proxies>(query.getResultList());
 		em.getTransaction().commit();
 		em.close();
-		// Upewnienie siê, ¿e nie ma duplikatow
-		Set<Proxies> proxies = new HashSet<Proxies>(proxyList);
-		return proxies;
+		printExistingProxies();
+		return set;
+	}
+	private Set<Proxies> loadProxiesFromDatabaseRandom(EntityManagerFactory entityManagerFactory, int numberOfRecords){
+		EntityManager em = entityManagerFactory.createEntityManager();
+		if(!em.getTransaction().isActive())em.getTransaction().begin();
+		TypedQuery<Proxies> query = em.createQuery("Select p FROM Proxies p order by rand()", Proxies.class).setMaxResults(numberOfRecords);
+		if(em.getTransaction().isActive())em.getTransaction().commit();
+		Set<Proxies> set = new HashSet<Proxies>(query.getResultList());
+		em.close();
+		return set;
+	}
+	private Set<Proxies> loadProxiesFromDataBaseRecently(EntityManagerFactory entityManagerFactory){
+		EntityManager em = entityManagerFactory.createEntityManager();
+		if(!em.getTransaction().isActive())em.getTransaction().begin();
+		TypedQuery<Proxies> query = em.createQuery("SELECT p FROM Proxies p order by dataDodania desc", Proxies.class);
+		Set<Proxies> set = new HashSet<Proxies>(query.getResultList());
+		if(em.getTransaction().isActive())em.getTransaction().commit();
+		em.close();
+		return set;
+	}
+	private Set<Proxies> loadProxiesFromDataBaseRank(EntityManagerFactory entityManagerFactory, double rank){
+		EntityManager em = entityManagerFactory.createEntityManager();
+		if(!em.getTransaction().isActive())em.getTransaction().begin();
+		TypedQuery<Proxies> query = em.createQuery("SELECT p FROM Proxies p WHERE rank <=:rank", Proxies.class);
+		query.setParameter("rank", rank);
+		Set<Proxies> set = new HashSet<Proxies>(query.getResultList());
+		if(em.getTransaction().isActive())em.getTransaction().commit();
+		em.close();
+		return set;
 	}
 
 	/**
@@ -178,7 +207,7 @@ public class AddProxy {
 	 * 
 	 * @param entityManagerFactory
 	 */
-	private void insertProxies(EntityManagerFactory entityManagerFactory) {
+	public void insertProxies(EntityManagerFactory entityManagerFactory) {
 		if (!this.getNewProxies().isEmpty()) {
 			EntityManager em = entityManagerFactory.createEntityManager();
 			for (Proxies proxies : this.getNewProxies()) {

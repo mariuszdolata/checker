@@ -19,11 +19,19 @@ public class ProxyChecker {
 			logger.error(e.getLocalizedMessage());
 			e.printStackTrace();
 		}
+//		addProxies();
+		startFrame();
+//		ProxyChecker.entityManagerFactory.close();
+	}
+	public static void addProxies(){
 		AddProxy addProxy = new AddProxy("C:\\crawlers\\proxies\\proxies.txt", ProxyChecker.entityManagerFactory);
 		addProxy.printNewProxies();
 		addProxy.printExistingProxies();
 		addProxy.printInfo();
-		ProxyChecker.entityManagerFactory.close();
+	}
+	public static void startFrame(){
+		ProxyCheckerFrame frame = new ProxyCheckerFrame(200,100,1000,750, "Proxy Checker", ProxyChecker.entityManagerFactory);
+		
 	}
 
 }
