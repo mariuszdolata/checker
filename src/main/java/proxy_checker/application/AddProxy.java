@@ -89,6 +89,9 @@ public class AddProxy {
 		joinProxySets(this.getFilePath());
 //		insertProxies(this.getEntityManagerFactory());
 	}
+	public AddProxy(EntityManagerFactory entityManagerFactory){
+		this.entityManagerFactory=entityManagerFactory;
+	}
 
 	/**
 	 * wczytuje proxy z pliku tekstowego (wynik dzialania proxy scrapera)
@@ -163,17 +166,16 @@ public class AddProxy {
 	 * @param entityManagerFactory
 	 * @return
 	 */
-	private Set<Proxies> loadProxiesFromDatabase(EntityManagerFactory entityManagerFactory) {
+	public Set<Proxies> loadProxiesFromDatabase(EntityManagerFactory entityManagerFactory) {
 		EntityManager em = entityManagerFactory.createEntityManager();
 		em.getTransaction().begin();
 		TypedQuery<Proxies> query = em.createQuery("SELECT p FROM Proxies p", Proxies.class);
 		Set<Proxies> set = new HashSet<Proxies>(query.getResultList());
 		em.getTransaction().commit();
 		em.close();
-		printExistingProxies();
 		return set;
 	}
-	private Set<Proxies> loadProxiesFromDatabaseRandom(EntityManagerFactory entityManagerFactory, int numberOfRecords){
+	public Set<Proxies> loadProxiesFromDatabaseRandom(EntityManagerFactory entityManagerFactory, int numberOfRecords){
 		EntityManager em = entityManagerFactory.createEntityManager();
 		if(!em.getTransaction().isActive())em.getTransaction().begin();
 		TypedQuery<Proxies> query = em.createQuery("Select p FROM Proxies p order by rand()", Proxies.class).setMaxResults(numberOfRecords);
@@ -182,7 +184,7 @@ public class AddProxy {
 		em.close();
 		return set;
 	}
-	private Set<Proxies> loadProxiesFromDataBaseRecently(EntityManagerFactory entityManagerFactory){
+	public Set<Proxies> loadProxiesFromDataBaseRecently(EntityManagerFactory entityManagerFactory){
 		EntityManager em = entityManagerFactory.createEntityManager();
 		if(!em.getTransaction().isActive())em.getTransaction().begin();
 		TypedQuery<Proxies> query = em.createQuery("SELECT p FROM Proxies p order by dataDodania desc", Proxies.class);
@@ -191,7 +193,7 @@ public class AddProxy {
 		em.close();
 		return set;
 	}
-	private Set<Proxies> loadProxiesFromDataBaseRank(EntityManagerFactory entityManagerFactory, double rank){
+	public Set<Proxies> loadProxiesFromDataBaseRank(EntityManagerFactory entityManagerFactory, double rank){
 		EntityManager em = entityManagerFactory.createEntityManager();
 		if(!em.getTransaction().isActive())em.getTransaction().begin();
 		TypedQuery<Proxies> query = em.createQuery("SELECT p FROM Proxies p WHERE rank <=:rank", Proxies.class);

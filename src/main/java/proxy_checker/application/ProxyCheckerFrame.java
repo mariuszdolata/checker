@@ -6,7 +6,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import javax.persistence.EntityManagerFactory;
 import javax.swing.ButtonGroup;
@@ -35,8 +37,11 @@ import proxy_checker.db.Proxies;
 
 public class ProxyCheckerFrame {
 	public Logger logger = Logger.getLogger(ProxyCheckerFrame.class);
+	public Logger admin = Logger.getLogger("admin");
+	public Logger db = Logger.getLogger("db");
 	private EntityManagerFactory entityManagerFactory;
-	private AddProxy addProxy;
+	private AddProxy addProxy ;
+	private AddProxy proxiesToCheck = new AddProxy(this.getEntityManagerFactory());
 
 	private File openSelectedFile;
 	private JFrame mainFrame;
@@ -55,6 +60,17 @@ public class ProxyCheckerFrame {
 	private JLabel chooseBrowser, chooseMethod;
 	private JTextField urlToScrapeField, xPathField, successField, failField, threadsField, timeOutField, retryField;
 	private JCheckBox nonStopCheck, jsCheck, imageCheck;
+
+	
+
+
+	public AddProxy getProxiesToCheck() {
+		return proxiesToCheck;
+	}
+
+	public void setProxiesToCheck(AddProxy proxiesToCheck) {
+		this.proxiesToCheck = proxiesToCheck;
+	}
 
 	public Logger getLogger() {
 		return logger;
@@ -657,7 +673,7 @@ public class ProxyCheckerFrame {
 				this.setAddProxy(
 						new AddProxy(openSelectedFile.getCanonicalPath().toString(), this.getEntityManagerFactory()));
 				// Wypelnienie tabeli nowymi adresami proxy
-				fillTable();
+				fillTable(this.getAddProxy().getNewProxies());
 				int insert = JOptionPane.showConfirmDialog(null, "Czy umieœciæ nowe adresy proxy w bazie", "INSERT",
 						JOptionPane.YES_NO_OPTION);
 				if (insert == JOptionPane.YES_OPTION) {
@@ -682,10 +698,11 @@ public class ProxyCheckerFrame {
 		}
 	}
 
-	public void fillTable() {
+	public void fillTable(Set<Proxies> data) {
+		this.getProxyListPanel().removeAll();
 		Object[] col = { "id", "data dodania", "adres", "port", "ranking" };
-		Object[][] proxies = new Object[this.getAddProxy().getNewProxies().size()][5];
-		Iterator<Proxies> iterateNewProxies = this.getAddProxy().getNewProxies().iterator();
+		Object[][] proxies = new Object[data.size()][5];
+		Iterator<Proxies> iterateNewProxies = data.iterator();
 		int iter = 0;
 		while (iterateNewProxies.hasNext()) {
 			Proxies proxy = iterateNewProxies.next();
@@ -697,6 +714,7 @@ public class ProxyCheckerFrame {
 				proxies[iter][4] = proxy.getRank();
 			} catch (Exception e) {
 				logger.error("Blad podczas wype³niania tabeli danymi nowych proxy");
+				e.printStackTrace();
 			}
 			iter++;
 		}
@@ -710,15 +728,55 @@ public class ProxyCheckerFrame {
 	}
 
 	private void selectButtonAction() {
+		boolean htmlunit = this.getHtmlUnitBrowser().isSelected();
+		boolean selenium = this.getSeleniumBrowser().isSelected();
+		if(htmlunit){
+			admin.info("Wybrano HtmlUnit");
+		}else if(selenium){
+			admin.info("Wybano Selenium");
+		}else{
+			admin.info("Nie wybrano ¿adnej przegl¹darki");
+		}
+		
+		boolean allProxies=this.getAllProxies().isSelected();
+		boolean randomProxies=this.getRandomProxies().isSelected();
+		boolean recentlyProxies = this.getRecentlyProxies().isSelected();
+		boolean graderProxies = this.getGraderProxies().isSelected();
+		boolean lessProxies = this.getLessProxies().isSelected();
+		if(allProxies){
+			admin.info("Wybrano wszystkie proxy");
+			//wyczyszczenie zbioru proxies przed dodaniem nowego
+			this.getProxiesToCheck().getExistingProxies().clear();
+			this.getProxiesToCheck().setExistingProxies(this.getProxiesToCheck().loadProxiesFromDatabase(entityManagerFactory));
+			this.getProxiesToCheck().printExistingProxies();
+			fillTable(this.getProxiesToCheck().getExistingProxies());
+
+		}else if(randomProxies){
+			admin.info("Wybrano losowe proxy");
+		}else if(recentlyProxies){
+			admin.info("Wybrano nowo dodane proxy");
+		}else if(graderProxies){
+			admin.info("Wybrano proxy wieksze ni¿");
+		}else if(lessProxies){
+			admin.info("Wybrano proxy mniejsze ni¿");
+		}else{
+			admin.info("Nie wybrano ¿andego kryterium doboru proxy!");
+		}
 		logger.info("SELECT button");
+		admin.info("SELECT button admin");
+		db.info("SELECT db");
 	}
 
 	private void testButtonAction() {
 		logger.info("TEST button");
+		admin.info("TEST button admin");
+		db.info("TEST db");
 	}
 
 	private void statsButtonAction() {
 		logger.info("STATS button");
+		admin.info("STATS button admin");
+		db.info("STATS db");
 	}
 
 }
