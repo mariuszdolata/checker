@@ -60,9 +60,10 @@ public class ProxyCheckerApplication extends JFrame {
 	private JRadioButton rdbtnRecentlyProxies = new JRadioButton("dodane dzisiaj");
 	private JRadioButton rdbtnGraderThanProxies = new JRadioButton("wi\u0119ksze ni\u017C");
 	private JRadioButton rdbtnLessThanProxies = new JRadioButton("mniejsze ni\u017C");
-	
-	
-	
+	private JCheckBox chckbxJSDisable = new JCheckBox("");
+	private JCheckBox chckbxImageDisable = new JCheckBox("");
+	private JRadioButton rdbtnHtmlUnit = new JRadioButton("HtmlUnit");
+	private JRadioButton rdbtnSelenium = new JRadioButton("Selenium");
 	
 	public Set<Proxies> getProxiesToCheck() {
 		return proxiesToCheck;
@@ -148,6 +149,11 @@ public class ProxyCheckerApplication extends JFrame {
 		});
 		
 		JButton btnTestuj = new JButton("testuj");
+		btnTestuj.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
 		
 		JButton btnZatrzymaj = new JButton("zatrzymaj test");
 		btnZatrzymaj.setEnabled(false);
@@ -199,11 +205,10 @@ public class ProxyCheckerApplication extends JFrame {
 		
 		JLabel lblNewLabel = new JLabel("przegladarka");
 		
-		JRadioButton rdbtnHtmlUnit = new JRadioButton("HtmlUnit");
 		buttonGroupBrowser.add(rdbtnHtmlUnit);
 		rdbtnHtmlUnit.setSelected(true);
 		
-		JRadioButton rdbtnSelenium = new JRadioButton("Selenium");
+
 		buttonGroupBrowser.add(rdbtnSelenium);
 		
 		JSeparator separator = new JSeparator();
@@ -250,9 +255,7 @@ public class ProxyCheckerApplication extends JFrame {
 		textNumberOfRetrying.setText("3");
 		textNumberOfRetrying.setColumns(10);
 		
-		JCheckBox chckbxJSDisable = new JCheckBox("");
 		
-		JCheckBox chckbxImageDisable = new JCheckBox("");
 		
 		JSeparator separator_2 = new JSeparator();
 		
@@ -269,6 +272,7 @@ public class ProxyCheckerApplication extends JFrame {
 		txtUrlToScrape.setColumns(10);
 		
 		textXPath = new JTextField();
+		textXPath.setText(".//div[@class=\"mjip2\"]");
 		textXPath.setColumns(10);
 		
 		textSuccess = new JTextField();
