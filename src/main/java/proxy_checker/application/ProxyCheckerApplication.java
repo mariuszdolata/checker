@@ -252,7 +252,7 @@ public class ProxyCheckerApplication extends JFrame {
 		textTimeOut.setColumns(10);
 
 		textNumberOfRetrying = new JTextField();
-		textNumberOfRetrying.setText("3");
+		textNumberOfRetrying.setText("1");
 		textNumberOfRetrying.setColumns(10);
 
 		JSeparator separator_2 = new JSeparator();

@@ -82,12 +82,15 @@ public class CheckTask {
 		this.score = score;
 	}
 
-	public CheckTask(int threadId, EntityManagerFactory entityManagerFactory, BrowserSettings browserSettings, Proxies proxy) {
+	public CheckTask(int threadId, EntityManagerFactory entityManagerFactory, BrowserSettings browserSettings,
+			Proxies proxy) {
+		logger.info("="+this.getThreadId()+"============================================================================");
+//		logger.fatal("TASK = "+this.getThreadId()+" PROXY="+this.getProxy().getAdres());
 		this.setProxy(proxy);
 		this.setThreadId(threadId);
 		this.setEntityManagerFactory(entityManagerFactory);
 		this.setBrowserSettings(browserSettings);
-		startChecking();
+//		startChecking();
 	}
 
 	/**
@@ -96,9 +99,7 @@ public class CheckTask {
 	public void startChecking() {
 		logger.info("wejscie w metode start checking");
 		if (this.getBrowserSettings().getBrowser() == Browser.HtmlUnit) {
-			logger.info("htmlUnit wybrano");
 			this.htmlUnitCheck();
-			logger.info("koniec htmlUnit check");
 		} else if (this.getBrowserSettings().getBrowser() == Browser.Selenium) {
 			SeleniumCheck();
 			JOptionPane.showMessageDialog(null, "Nie zaimplementowano metody dla Selenium - modu³ rozwojowy", "Browser",
@@ -113,43 +114,68 @@ public class CheckTask {
 	 * Wczytanie strony w przegladarce htmlUnit z ustawionym proxy
 	 */
 	public void htmlUnitCheck() {
-		logger.info("adresproxy = "+this.getProxy().getAdres());
-		logger.info("port="+this.getProxy().getPort());
-		logger.info("url="+this.getBrowserSettings().getUrl());
+		logger.info("adresproxy = " + this.getProxy().getAdres() + ", port=" + this.getProxy().getPort() + ", url="
+				+ this.getBrowserSettings().getUrl());
 		try {
-			logger.info("nastapi stworzenie WebClient");
-			WebClient client = new WebClient(BrowserVersion.FIREFOX_38, this.getProxy().getAdres(),
+			logger.info("tworzenie obiektu WebClient");
+			WebClient client = new WebClient(BrowserVersion.FIREFOX_45, this.getProxy().getAdres(),
 					this.getProxy().getPort());
-			client.setHTMLParserListener(HTMLParserListener.LOG_REPORTER);
+//			client.setHTMLParserListener(HTMLParserListener.LOG_REPORTER);
 			client.getOptions().setTimeout(this.getBrowserSettings().getTimeOut());
 			// Wy³¹czenie javaScript
 			if (this.getBrowserSettings().isJsDisable())
 				client.getOptions().setJavaScriptEnabled(false);
 			else
 				client.getOptions().setJavaScriptEnabled(true);
-			int retry = 0;
+			int retry = -1;
 			HtmlPage page = null;
 			// n-powtórzeñ dozwolonych; zliczanie czasu dla n-powtórzeñ
 			long startMs = System.currentTimeMillis();
+			int statusCode;
 			do {
-				page = client.getPage(this.getBrowserSettings().getUrl());
-				logger.info("Koniec pobierania strony");
-			} while (retry < this.getBrowserSettings().getRetry() && page.getWebResponse().getStatusCode() != 200);
+				try {
+					logger.info("Iteracja nr = " + (retry + 1));
+					page = client.getPage(this.getBrowserSettings().getUrl());
+					retry++;
+					statusCode = page.getWebResponse().getStatusCode();
+				} catch (Exception e) {
+					logger.warn("B³¹d pobierania strony");
+					e.printStackTrace();
+					retry++;
+					statusCode = 404;
+				}
+			} while (retry < this.getBrowserSettings().getRetry() && statusCode != 200);
+			logger.info("Koniec cyklu pobierania strony");
 			long stopMs = System.currentTimeMillis();
-			this.setResult(Integer.toString(page.getWebResponse().getStatusCode()));
-			if (page.getWebResponse().getStatusCode() == 200) {
-				logger.info("Webresponse status code ==200");
+			if (statusCode == 200) {
+				this.setResult("Success");
+				logger.info("Webresponse status code SUCCESS");
 				// Stworzenie obiektu klasy Score i wstawienie do get (+ insert
 				// w db)
 				Score score = new Score();
 				score.setMs(toIntExact(stopMs - startMs));
 				score.setPotwierdzenie(htmlUnitParse(page));
 				score.setProby(retry);
+				score.setWynik(1.0 - ((score.getMs() * score.getProby()) / (score.getMs() * 3.0)));
+				score.setThreadId(this.getThreadId());
 				insertScore(score);
-				logger.info(score.toString());
 
+			} else {
+				this.setResult("FAIL");
+				logger.info("WebResponse status Code FAIL =" + page.getWebResponse().getStatusCode());
+				// sprawdzenie proxy zakoñczone niepowodzeniem
+				Score score = new Score();
+				score.setWynik(-1);
+				score.setThreadId(this.getThreadId());
+				insertScore(score);
 			}
 		} catch (Exception e) {
+			// FAIL
+			this.setResult("FAIL");
+			Score score = new Score();
+			score.setWynik(-1);
+			score.setThreadId(this.getThreadId());
+			insertScore(score);
 			logger.error("Wyst¹pi³ problem z htmlUnit dla url=" + this.getBrowserSettings().getUrl());
 			e.printStackTrace();
 		}
@@ -159,25 +185,38 @@ public class CheckTask {
 		List<HtmlDivision> parsedString = (List<HtmlDivision>) page.getByXPath(this.getBrowserSettings().getxPath());
 		if (parsedString.size() > 0) {
 			return parsedString.get(0).asText();
-		} else
+		} else{
+			this.setResult("FAIL");
 			return "FAIL";
+		}
 	}
 
-	public void insertScore(Score score) {
+	synchronized public void insertScore(Score score) {
 		try {
-			logger.info("INSERT SCORE");
+			logger.info("INSERT SCORE->" + score.toString());
+			Proxies p = null;
 			EntityManager em = this.getEntityManagerFactory().createEntityManager();
-			if(!em.getTransaction().isActive())em.getTransaction().begin();
-//			this.proxy.getScores().add(score);
-			Proxies p = em.find(Proxies.class, this.getProxy().getId());
-			p.getScores().add(score);
-//			TypedQuery<Proxies> q = em.createNamedQuery("SELECT p FROM Proxies Where id like :id", Proxies.class).setParameter("id", this.getProxy().getId());
-//			Proxies p = q.getSingleResult();
-			logger.info("PROXIES="+p.toString());
-			if(em.getTransaction().isActive())em.getTransaction().commit();
+
+			if (!em.getTransaction().isActive())
+				em.getTransaction().begin();
+			Long id = 0L;
+			try {
+				id = this.getProxy().getId();
+				logger.info("id=" + id);
+				p = em.find(Proxies.class, this.getProxy().getId());
+				p.getScores().add(score);
+				logger.info("PROXIES=" + p.toString());
+			} catch (Exception e) {
+				logger.info("Problem z pobraniem Proxy o zadanym ID");
+				logger.info("Proxy_id=" + id);
+			}
+			if (em.getTransaction().isActive())
+				em.getTransaction().commit();
 			em.close();
+
 		} catch (Exception e) {
 			logger.error("Nie mo¿na wstawiæ obiektu Score do bazy danych");
+			e.printStackTrace();
 			logger.error(e.getMessage());
 			e.printStackTrace();
 		}

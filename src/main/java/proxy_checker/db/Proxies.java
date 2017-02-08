@@ -1,6 +1,7 @@
 package proxy_checker.db;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -10,7 +11,9 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -25,10 +28,11 @@ public class Proxies {
 	private String adres;
 	private int port;
 	private double rank;
-	private Set<Score> scores;
+	private Set<Score> scores = new HashSet<Score>();
 	
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE)
+	@Column(name="proxy_id")
 	public Long getId() {
 		return id;
 	}
@@ -63,7 +67,10 @@ public class Proxies {
 	public void setRank(double rank) {
 		this.rank = rank;
 	}
-	@OneToMany(cascade=CascadeType.ALL, mappedBy="proxies")
+	@ManyToMany(fetch=FetchType.LAZY, cascade=CascadeType.ALL)
+	@JoinTable(name="proxies_score", joinColumns={@JoinColumn(name="proxy_id", nullable=false, updatable=false)}, inverseJoinColumns={
+			@JoinColumn(name="score_id", nullable=false, updatable=false)
+	})
 	public Set<Score> getScores() {
 		return scores;
 	}
@@ -101,8 +108,10 @@ public class Proxies {
 	}
 	@Override
 	public String toString() {
-		return "Proxies [id=" + id + ", dataDodania=" + dataDodania + ", adres=" + adres + ", port=" + port + "]";
+		return "Proxies [id=" + id + ", dataDodania=" + dataDodania + ", adres=" + adres + ", port=" + port + ", rank="
+				+ rank + ", scores=" + scores + "]";
 	}
+	
 	
 	
 

@@ -88,10 +88,11 @@ public class AddProxy {
 		this.filePath = filePath;
 		this.entityManagerFactory = entityManagerFactory;
 		joinProxySets(this.getFilePath());
-//		insertProxies(this.getEntityManagerFactory());
+		// insertProxies(this.getEntityManagerFactory());
 	}
-	public AddProxy(EntityManagerFactory entityManagerFactory){
-		this.entityManagerFactory=entityManagerFactory;
+
+	public AddProxy(EntityManagerFactory entityManagerFactory) {
+		this.entityManagerFactory = entityManagerFactory;
 	}
 
 	/**
@@ -128,7 +129,6 @@ public class AddProxy {
 
 		return new ArrayList<Proxies>(proxiesTxt);
 	}
-	
 
 	/**
 	 * Metoda wczytuje nowe proxy z pliku tekstowego i istniejace z bazy
@@ -151,7 +151,7 @@ public class AddProxy {
 		}
 		// dodanie nowych wczesniej nieistniejacych adresow
 		try {
-//			this.getExistingProxies().addAll(this.getNewProxies());
+			// this.getExistingProxies().addAll(this.getNewProxies());
 			this.getNewProxies().removeAll(this.getExistingProxies());
 		} catch (Exception e) {
 			logger.error("Nie mozna dodac nowych adresow proxy do istniejacego zbioru");
@@ -176,31 +176,41 @@ public class AddProxy {
 		em.close();
 		return set;
 	}
-	public Set<Proxies> loadProxiesFromDatabaseRandom(EntityManagerFactory entityManagerFactory, int numberOfRecords){
+
+	public Set<Proxies> loadProxiesFromDatabaseRandom(EntityManagerFactory entityManagerFactory, int numberOfRecords) {
 		EntityManager em = entityManagerFactory.createEntityManager();
-		if(!em.getTransaction().isActive())em.getTransaction().begin();
-		TypedQuery<Proxies> query = em.createQuery("Select p FROM Proxies p order by rand()", Proxies.class).setMaxResults(numberOfRecords);
-		if(em.getTransaction().isActive())em.getTransaction().commit();
+		if (!em.getTransaction().isActive())
+			em.getTransaction().begin();
+		TypedQuery<Proxies> query = em.createQuery("Select p FROM Proxies p order by rand()", Proxies.class)
+				.setMaxResults(numberOfRecords);
+		if (em.getTransaction().isActive())
+			em.getTransaction().commit();
 		Set<Proxies> set = new HashSet<Proxies>(query.getResultList());
 		em.close();
 		return set;
 	}
-	public Set<Proxies> loadProxiesFromDataBaseRecently(EntityManagerFactory entityManagerFactory){
+
+	public Set<Proxies> loadProxiesFromDataBaseRecently(EntityManagerFactory entityManagerFactory) {
 		EntityManager em = entityManagerFactory.createEntityManager();
-		if(!em.getTransaction().isActive())em.getTransaction().begin();
+		if (!em.getTransaction().isActive())
+			em.getTransaction().begin();
 		TypedQuery<Proxies> query = em.createQuery("SELECT p FROM Proxies p order by dataDodania desc", Proxies.class);
 		Set<Proxies> set = new HashSet<Proxies>(query.getResultList());
-		if(em.getTransaction().isActive())em.getTransaction().commit();
+		if (em.getTransaction().isActive())
+			em.getTransaction().commit();
 		em.close();
 		return set;
 	}
-	public Set<Proxies> loadProxiesFromDataBaseRank(EntityManagerFactory entityManagerFactory, double rank){
+
+	public Set<Proxies> loadProxiesFromDataBaseRank(EntityManagerFactory entityManagerFactory, double rank) {
 		EntityManager em = entityManagerFactory.createEntityManager();
-		if(!em.getTransaction().isActive())em.getTransaction().begin();
+		if (!em.getTransaction().isActive())
+			em.getTransaction().begin();
 		TypedQuery<Proxies> query = em.createQuery("SELECT p FROM Proxies p WHERE rank <=:rank", Proxies.class);
 		query.setParameter("rank", rank);
 		Set<Proxies> set = new HashSet<Proxies>(query.getResultList());
-		if(em.getTransaction().isActive())em.getTransaction().commit();
+		if (em.getTransaction().isActive())
+			em.getTransaction().commit();
 		em.close();
 		return set;
 	}
@@ -213,17 +223,14 @@ public class AddProxy {
 	public void insertProxies(EntityManagerFactory entityManagerFactory) {
 		if (!this.getNewProxies().isEmpty()) {
 			EntityManager em = entityManagerFactory.createEntityManager();
+			if (!em.getTransaction().isActive())
+				em.getTransaction().begin();
 			for (Proxies proxies : this.getNewProxies()) {
 				try {
-					if (!em.getTransaction().isActive())
-						em.getTransaction().begin();
-
 					em.persist(proxies);
-					if (em.getTransaction().isActive())
-						em.getTransaction().commit();
 					logger.info("wstawiony adres " + proxies.toString());
 				} catch (Exception e) {
-//					em.getTransaction().commit();
+					// em.getTransaction().commit();
 					logger.warn("nie mozna wstawic obiektu do bazy " + proxies.toString());
 					StringWriter stack = new StringWriter();
 					e.printStackTrace(new PrintWriter(stack));
@@ -231,6 +238,8 @@ public class AddProxy {
 					logger.warn(stack.toString());
 				}
 			}
+			if (em.getTransaction().isActive())
+				em.getTransaction().commit();
 			em.close();
 		} else {
 			logger.warn("Nie mozna dodac proxy - lista jest pusta");

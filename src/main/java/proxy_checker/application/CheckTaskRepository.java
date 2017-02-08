@@ -9,7 +9,6 @@ import javax.persistence.EntityManagerFactory;
 
 import org.apache.log4j.Logger;
 
-import crawler.api.DatabaseAccess;
 import proxy_checker.db.Proxies;
 
 public class CheckTaskRepository implements Runnable {
@@ -76,13 +75,18 @@ public class CheckTaskRepository implements Runnable {
 			try{//glowny blok wykonywania w¹tku
 				Integer index = null;
 				do{
-					index = getProxy(status);
+					synchronized (status){
+						index = getProxy(status);	
+//						logger.fatal("REPO thread="+this.getThreadId()+"i="+index);
+					}
 					if(index!=null){
 						//uurchomienie pojedynczego testu
 						CheckTask task = new CheckTask(this.getThreadId(),  this.getEntityManagerFactory(), this.getBrowserSettings(), this.getProxiesToCheck().get(index));
 						//zapisanie statusu dla danego proxy
 						task.startChecking();
-						setProxy(status, index, task.getResult());
+						synchronized (status){
+							setProxy(status, index, task.getResult());							
+						}
 					}
 				}while(index!= null);
 				
@@ -103,9 +107,11 @@ public class CheckTaskRepository implements Runnable {
 	public synchronized Integer getProxy(List<String> status) {
 		int j;
 		for (int i = 0; i < status.size(); i++) {
-			if (status.get(i) != "SPRAWDZONO" && status.get(i) != "SPRAWDZANIE")
-				status.set(i, "SPRAWDZANIE");
-			return i;
+			if (status.get(i).contains("DO SPRAWDZENIA")){
+				status.set(i, "PENDING");
+				logger.info("WYBRANO watek="+this.getThreadId()+", i="+i+"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+				return i;				
+			}
 		}
 		return (Integer) null;
 	}

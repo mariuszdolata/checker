@@ -9,7 +9,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JTextField;
 
-import crawler.api.DatabaseAccess;
 import proxy_checker.db.Proxies;
 
 public class StartTask {

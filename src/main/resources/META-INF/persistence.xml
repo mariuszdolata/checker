@@ -6,7 +6,7 @@
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 		<class>proxy_checker.db.Proxy</class>
 		<class>proxy_checker.db.Score</class>
-		<exclude-unlisted-classes>true</exclude-unlisted-classes>
+<!-- 		<exclude-unlisted-classes>true</exclude-unlisted-classes> -->
 		<properties>
 			<property name="hibernate.connection.driver_class" value="com.mysql.cj.jdbc.Driver" />
 			<!-- <property name="hibernate.connection.password" value="${database.password}" 
@@ -20,7 +20,7 @@
 				value="jdbc:mysql://localhost:3306/proxy_temp?useTimezone=true&amp;serverTimezone=GMT" />
 			<property name="hibernate.connection.username" value="proxy" />
 			<property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect" />
-			<property name="hibernate.hbm2ddl.auto" value="update" />
+			<property name="hibernate.hbm2ddl.auto" value="create" />
 		</properties>
 	</persistence-unit>
 </persistence>

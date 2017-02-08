@@ -1,16 +1,16 @@
 package proxy_checker.db;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -26,20 +26,23 @@ public class Score {
 	private String potwierdzenie;
 	private int ms;
 	private int proby;
-	private Proxies proxies;
+	private double wynik;
+	private int threadId;
+	private Set<Proxies> proxies = new HashSet<Proxies>();
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	public Long getScoreId() {
+	@GeneratedValue(strategy=GenerationType.SEQUENCE)
+	public Long getScore_id() {
 		return score_id;
 	}
-	public void setScoreId(Long id) {
-		this.score_id = id;
+	public void setScore_id(Long score_id) {
+		this.score_id = score_id;
 	}
 	@UpdateTimestamp
 	@Temporal(TemporalType.TIMESTAMP)
 	public Date getDataTestu() {
 		return dataTestu;
 	}
+	
 	public void setDataTestu(Date dataTestu) {
 		this.dataTestu = dataTestu;
 	}
@@ -62,22 +65,39 @@ public class Score {
 	public void setProby(int proby) {
 		this.proby = proby;
 	}
-	@ManyToOne(cascade=CascadeType.ALL)
-	@JoinColumn(name="proxy_id", nullable=false)
-	public Proxies getProxies() {
+	
+		@ManyToMany(fetch=FetchType.LAZY, mappedBy="scores")
+	public Set<Proxies> getProxies() {
 		return proxies;
 	}
-	public void setProxies(Proxies proxies) {
+	public void setProxies(Set<Proxies> proxies) {
 		this.proxies = proxies;
+	}
+	@Column(precision=2)
+	public double getWynik() {
+		return wynik;
+	}
+	public void setWynik(double wynik) {
+		this.wynik = wynik;
+	}
+	
+	public int getThreadId() {
+		return threadId;
+	}
+	public void setThreadId(int threadId) {
+		this.threadId = threadId;
 	}
 	public Score() {
 		super();
 	}
 	@Override
 	public String toString() {
-		return "Score [id=" + score_id + ", dataTestu=" + dataTestu + ", potwierdzenie=" + potwierdzenie + ", ms=" + ms
-				+ ", proby=" + proby + ", proxies=" + proxies + "]";
+		return "Score [score_id=" + score_id + ", dataTestu=" + dataTestu + ", potwierdzenie=" + potwierdzenie + ", ms="
+				+ ms + ", proby=" + proby + ", wynik=" + wynik + ", threadId=" + threadId + ", proxies=" + proxies
+				+ "]";
 	}
+	
+	
 	
 	
 }
