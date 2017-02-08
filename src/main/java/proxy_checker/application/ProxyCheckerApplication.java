@@ -34,6 +34,7 @@ import org.apache.log4j.Logger;
 import proxy_checker.db.Proxies;
 
 public class ProxyCheckerApplication extends JFrame {
+	//
 	public Logger logger = Logger.getLogger(ProxyCheckerApplication.class);
 	private EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("proxy");
 	private List<Proxies> proxiesToCheck = Collections.synchronizedList(new ArrayList<Proxies>());

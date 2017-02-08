@@ -22,6 +22,7 @@ import proxy_checker.db.Proxies;
 import proxy_checker.db.Score;
 
 public class CheckTask {
+	//
 	public Logger logger = Logger.getLogger(CheckTask.class);
 	private int threadId;
 	private EntityManagerFactory entityManagerFactory;

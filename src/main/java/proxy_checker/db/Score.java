@@ -16,7 +16,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.UpdateTimestamp;
-
+//
 @Entity
 @Table(name="score")
 public class Score {

@@ -20,7 +20,7 @@ import proxy_checker.db.Proxies;
 
 /**
  * Klasa wczytujaca potencjalnie nowe proxy do bazy. Wczytuje nowe, porownyje ze
- * starymi i uaktualnia liste proxy tak aby adresy byly unikalne
+ * starymi i uaktualnia liste proxy tak aby adresy byly unikalne//
  * 
  * @author mariusz
  *

@@ -13,7 +13,7 @@ import crawler.api.DatabaseAccess;
 import proxy_checker.db.Proxies;
 
 public class CheckTaskRepository implements Runnable {
-
+//
 	public Logger logger = Logger.getLogger(CheckTaskRepository.class);
 	private List<Proxies> proxiesToCheck = Collections.synchronizedList(new ArrayList<Proxies>());
 	private List<String> status = Collections.synchronizedList(new ArrayList<String>());

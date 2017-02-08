@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
 import proxy_checker.db.Proxies;
 
 /**
- * Klasa zawieraj¹ca metody do obs³ugi GUI
+ * Klasa zawieraj¹ca metody do obs³ugi GUI//
  * 
  * @author mariusz
  *

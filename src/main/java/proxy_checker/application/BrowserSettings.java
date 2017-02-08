@@ -5,6 +5,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
 public class BrowserSettings {
+	//
 	private int timeOut;
 	private boolean jsDisable;
 	private boolean imageDisable;

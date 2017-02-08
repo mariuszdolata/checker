@@ -13,7 +13,7 @@ import crawler.api.DatabaseAccess;
 import proxy_checker.db.Proxies;
 
 public class StartTask {
-
+//
 
 	private BrowserSettings browserSettings;
 	private List<Proxies> proxiesToCheck = Collections.synchronizedList(new ArrayList<Proxies>());
