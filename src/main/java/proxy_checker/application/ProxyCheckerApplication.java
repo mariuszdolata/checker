@@ -32,6 +32,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import org.apache.log4j.Logger;
 
 import proxy_checker.db.Proxies;
+import java.awt.Color;
 
 public class ProxyCheckerApplication extends JFrame {
 	//
@@ -67,6 +68,7 @@ public class ProxyCheckerApplication extends JFrame {
 	JCheckBox chckbxNonStop = new JCheckBox("");
 	private JRadioButton rdbtnHtmlUnit = new JRadioButton("HtmlUnit");
 	private JRadioButton rdbtnSelenium = new JRadioButton("Selenium");
+	public JProgressBar progressBar = new JProgressBar();
 
 	public List<Proxies> getProxiesToCheck() {
 		return proxiesToCheck;
@@ -153,6 +155,9 @@ public class ProxyCheckerApplication extends JFrame {
 					status.add("DO SPRAWDZENIA");
 				panelLista.add(AppMethods.fillTable(proxiesToCheck, status));
 				panelLista.invalidate();
+				progressBar.setMinimum(0);
+				progressBar.setMaximum(proxiesToCheck.size());
+				
 			}
 		});
 
@@ -163,7 +168,7 @@ public class ProxyCheckerApplication extends JFrame {
 						textNumberOfRetrying, txtUrlToScrape, textXPath, textSuccess, textFail, rdbtnSelenium,
 						rdbtnHtmlUnit, chckbxNonStop, textNumberOfThreads);
 				try{
-					StartTask startTask = new StartTask(entityManagerFactory, browserSettings, proxiesToCheck, status);
+					StartTask startTask = new StartTask(entityManagerFactory, browserSettings, proxiesToCheck, status, progressBar, table);
 					startTask.start();
 				}catch(Exception ex){
 					logger.error("Blad przy tworzeniu obiektu StartTask\n"+ex.getMessage());
@@ -179,7 +184,7 @@ public class ProxyCheckerApplication extends JFrame {
 
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 
-		JProgressBar progressBar = new JProgressBar();
+		
 		GroupLayout groupLayout = new GroupLayout(getContentPane());
 		groupLayout.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup().addContainerGap()
@@ -193,6 +198,7 @@ public class ProxyCheckerApplication extends JFrame {
 								.addComponent(progressBar, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 598,
 										Short.MAX_VALUE))
 						.addContainerGap()));
+		progressBar.setForeground(Color.GREEN);
 		groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup().addContainerGap()
 						.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(btnDodaj)
@@ -236,7 +242,7 @@ public class ProxyCheckerApplication extends JFrame {
 		JLabel lblNewLabel_3 = new JLabel("liczba w\u0105tk\u00F3w");
 
 		textNumberOfThreads = new JTextField();
-		textNumberOfThreads.setText("1");
+		textNumberOfThreads.setText("5");
 		textNumberOfThreads.setColumns(10);
 
 		JLabel lblNewLabel_4 = new JLabel("TimeOut [ms]");

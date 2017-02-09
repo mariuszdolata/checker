@@ -24,6 +24,7 @@ import proxy_checker.db.Score;
 public class CheckTask {
 	//
 	public Logger logger = Logger.getLogger(CheckTask.class);
+	public Logger dbLogger = Logger.getLogger("db");
 	private int threadId;
 	private EntityManagerFactory entityManagerFactory;
 	private Proxies proxy;
@@ -83,11 +84,12 @@ public class CheckTask {
 	}
 
 	public CheckTask(int threadId, EntityManagerFactory entityManagerFactory, BrowserSettings browserSettings,
-			Proxies proxy) {
+			Proxies proxy, int i) {
+		this.setThreadId(threadId);
+		dbLogger.info("Wczytano Thread="+this.getThreadId()+", i="+i+", proxy="+proxy.getAdres()+", port="+proxy.getPort());
 		logger.info("="+this.getThreadId()+"============================================================================");
 //		logger.fatal("TASK = "+this.getThreadId()+" PROXY="+this.getProxy().getAdres());
 		this.setProxy(proxy);
-		this.setThreadId(threadId);
 		this.setEntityManagerFactory(entityManagerFactory);
 		this.setBrowserSettings(browserSettings);
 //		startChecking();
